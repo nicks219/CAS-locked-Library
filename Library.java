@@ -2,6 +2,7 @@ package com.accenture.atc.javacore.m10threads;
 
 import java.util.Arrays;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.IntStream;
 
 // Автор кода: Николай Медведев
 // Благодарность за помощь в поиске решения: Виктору Лошманову (Java-разработчик) и Википедии
@@ -23,15 +24,14 @@ public class Library {
 
         library = new AtomicReference[count];
 
-        while (count-- > 0) {
-            library[count] = new AtomicReference<Book>(new Book(true, false, 0, count));
-        }
+        IntStream.range(0, count)
+                .forEach(i -> library[i] = new AtomicReference<Book>(new Book(true, false, 0, i)));
     }
 
-    public Book tryTakeBook(int bookId, boolean toReadingRoom) {
+    public Book tryTakeBook(int bookId, boolean toReadingRoom) throws LibraryExceptions {
 
         if (bookId < 0 || bookId >= library.length) {
-            return null;
+            throw new LibraryExceptions("Id is out of range");
         }
 
         AtomicReference<Book> atomic = library[bookId];
@@ -42,7 +42,7 @@ public class Library {
             return null;
         }
 
-        /* Мы будем брать книгу под CAS-блокировкой */
+        /* Мы будем брать книгу под блокировкой, используя CAS-команду */
         do {
             book = atomic.get();
 
@@ -72,7 +72,7 @@ public class Library {
             return false;
         }
 
-        /* Возвращать книгу можно не под блокировкой */
+        /* Возвращать книгу можно без цикла и явного использования CAS-команды */
         atomic.set(newBook);
         return true;
     }
@@ -110,12 +110,12 @@ public class Library {
         /* Счетчик counter используется как дополнительная проверка */
         int theftCounter;
 
-        public Book(boolean readingRoomOnly, boolean busy, int counter, int bookNumber) {
+        public Book(boolean readingRoomOnly, boolean busy, int counter, int bookId) {
 
             this.isReadingRoomOnly = readingRoomOnly;
             this.isBusy = busy;
             this.theftCounter = counter;
-            this.bookId = bookNumber;
+            this.bookId = bookId;
         }
     }
 

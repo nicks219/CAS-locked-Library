@@ -36,8 +36,8 @@ public class LibraryTest {
         Assertions.assertTrue(library.tryReturnBook(book));
         Assertions.assertFalse(library.tryReturnBook(book));
 
-        Assertions.assertNull(library.tryTakeBook(-bookCount * 2, true));
-        Assertions.assertNull(library.tryTakeBook(bookCount * 2, true));
+        Assertions.assertThrows(Library.LibraryExceptions.class, () -> library.tryTakeBook(-bookCount * 2, true));
+        Assertions.assertThrows(Library.LibraryExceptions.class, () -> library.tryTakeBook(bookCount * 2, true));
         Assertions.assertNull(library.tryTakeBook(bookNumber, false));
 
         book = library.tryTakeBook(bookNumber, true);
@@ -186,11 +186,16 @@ public class LibraryTest {
 
     public Book getBookByNumber(Library library, int number, AtomicInteger atomicInteger) {
 
-        var book = library.tryTakeBook(number, true);
+        try {
+            var book = library.tryTakeBook(number, true);
 
-        if (book != null) {
-            atomicInteger.getAndIncrement();
-            return book;
+            if (book != null) {
+                atomicInteger.getAndIncrement();
+                return book;
+            }
+
+        } catch (Library.LibraryExceptions ex) {
+            System.out.println("LIBRARY EXCEPTIONS WAS THROWN");
         }
         return null;
     }
