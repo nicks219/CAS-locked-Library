@@ -26,7 +26,7 @@ public class LibraryTest {
      * Простой однопоточный тест для проверки пограничных условий и счетчиков
      */
     @Test
-    public void multithreadLibraryCanGetAndReturnBooksWithCorrectNumbersOnly() {
+    public void multithreadLibraryCanGetAndReturnBooksWithCorrectNumbersOnly() throws Library.LibraryExceptions {
 
         var library = new Library(bookCount);
         Book book = library.tryTakeBook(bookNumber, true);
@@ -43,11 +43,11 @@ public class LibraryTest {
         book = library.tryTakeBook(bookNumber, true);
         Assertions.assertNotNull(book);
         Assertions.assertEquals(1, library.busyBookCount());
-        Assertions.assertEquals(0, library.booksZeroCounterSum());
+        Assertions.assertEquals(0, library.booksTheftCounterSum());
 
         library.tryReturnBook(book);
         Assertions.assertEquals(0, library.busyBookCount());
-        Assertions.assertEquals(0, library.booksZeroCounterSum());
+        Assertions.assertEquals(0, library.booksTheftCounterSum());
     }
 
     /**
@@ -61,7 +61,7 @@ public class LibraryTest {
      */
 
     @Test
-    public void multithreadLibraryIsThreadSafeConcretely() throws Exception {
+    public void multithreadLibraryIsThreadSafeConcretely() throws ExecutionException, InterruptedException {
 
         /* AtomicInteger-счетчик используется как дополнительная проверка */
         AtomicInteger atomicInteger = new AtomicInteger(0);
@@ -127,12 +127,12 @@ public class LibraryTest {
         System.out.println("\nFirst test passed: ");
 
         System.out.printf("In the reading room: %d books\n", library.busyBookCount());
-        System.out.printf("In the book.counter field: %d \n", library.booksZeroCounterSum());
+        System.out.printf("In the book.counter field: %d \n", library.booksTheftCounterSum());
         System.out.println("Atomic integer: " + atomicInteger);
 
         Assertions.assertEquals(0, errors);
         Assertions.assertEquals(library.busyBookCount(), atomicInteger.get());
-        Assertions.assertEquals(library.booksZeroCounterSum(), atomicInteger.get());
+        Assertions.assertEquals(library.booksTheftCounterSum(), atomicInteger.get());
     }
 
     /**
@@ -181,7 +181,7 @@ public class LibraryTest {
         System.out.println("\nSecond test passed. All is correct.");
 
         Assertions.assertEquals(library.busyBookCount(), atomicInteger.get());
-        Assertions.assertEquals(library.booksZeroCounterSum(), atomicInteger.get());
+        Assertions.assertEquals(library.booksTheftCounterSum(), atomicInteger.get());
     }
 
     public Book getBookByNumber(Library library, int number, AtomicInteger atomicInteger) {
